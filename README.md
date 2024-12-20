@@ -2,7 +2,7 @@
 
 tb3k is a Python-based Discord bot with numerous cool, fun, and fancy features such as birthday tracking, and with many more planned.
 
-To setup, make sure your installed `python3` (3.13 or higher required) and `pip` are up to date. Then,
+To setup, make sure your installed `python3` and `pip` are up to date. Then,
 
 ```bash
 $ echo "DISCORD_TOKEN='AUTH_TOKEN'" >> ./.env
