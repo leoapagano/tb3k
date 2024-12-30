@@ -124,6 +124,10 @@ class BirthdayCog(commands.Cog):
 
 			# Cycle through users with registered birthdays
 			for user_id in self.bot.dt[guild_id]['birthdays'].keys():
+				# Ignore users who are no longer in the guild
+				if guild.get_member(int(user_id)) is None: 
+					continue
+
 				# Get user info
 				user = guild.get_member(int(user_id))
 				user_birthday = unpack_iso_date(self.bot.dt[guild_id]['birthdays'][user_id])
