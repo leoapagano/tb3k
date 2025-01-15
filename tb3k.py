@@ -75,8 +75,8 @@ async def on_message(message):
 	# Print message to debug log
 	print(f"[{message.author.name}@{message.guild}] {message.content}")
 
-	# React to being mentioned
-	if bot.user.mentioned_in(message):
+	# React to being mentioned directly
+	if bot.user in message.mentions:
 		await message.channel.send(f'Hello <@{message.author.id}>!')
 	
 	# React to the word "sand"
