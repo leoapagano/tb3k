@@ -41,6 +41,7 @@ async def on_ready():
 
 	# Load cogs
 	print("[core] Loading cogs...")
+	await bot.load_extension('cogs.auto-responses')
 	await bot.load_extension('cogs.birthday')
 	await bot.load_extension('cogs.say')
 
