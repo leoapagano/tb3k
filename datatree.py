@@ -49,6 +49,9 @@ class DataTree:
 		"""Check if DataTree[key] exists (current level only)."""
 		return str(key) in self._tree
 
+	def __iter__(self):
+		return iter(self._tree)
+
 	def keys(self):
 		"""Returns a list of all keys at the root of the DataTree."""
 		return self._tree.keys()
