@@ -41,6 +41,7 @@ async def on_ready():
 
 	# Load cogs
 	print("[core] Loading cogs...")
+	await bot.load_extension('cogs.auto-responses')
 	await bot.load_extension('cogs.birthday')
 	await bot.load_extension('cogs.say')
 
@@ -74,14 +75,6 @@ async def on_message(message):
 	
 	# Print message to debug log
 	print(f"[{message.author.name}@{message.guild}] {message.content}")
-
-	# React to being mentioned directly
-	if bot.user in message.mentions:
-		await message.channel.send(f'Hello <@{message.author.id}>!')
-	
-	# React to the word "sand"
-	if "sand" in message.content.lower().split():
-		await message.channel.send("I don't like sand. It's coarse, and rough, and irritating...and it gets everywhere!")
 
 	# Needed for other stuff
 	await bot.process_commands(message)
