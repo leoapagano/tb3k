@@ -6,6 +6,8 @@ Commands:
 	/test: testing 123
 """
 
+import re
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -30,15 +32,18 @@ class AutoResponsesCog(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_message(self, message):
-		# Do not respond to own messages
+		# Do not respond to other bots (or yourself)
 		if message.author.bot:
 			return
+		
+		# Load auto-responses datatree
+		auto_response_dt = self.bot.dt[message.guild.id]["auto-responses"]
 
-		print(f"Message handled: {message.content}")
+		# Respond to many possible messages
+		for catchphrase in auto_response_dt:
+			if re.search(catchphrase, message.content):
+				await message.channel.send(auto_response_dt[catchphrase], reference=message)
 
-		# Optionally, you can make the bot respond to certain messages
-		if message.content.lower() == "hola mis amigos":
-			await message.channel.send("Hello! How can I assist you today?")
 	
 
 async def setup(bot):
