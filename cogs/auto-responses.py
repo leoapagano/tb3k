@@ -23,6 +23,27 @@ class AutoResponsesCog(commands.Cog):
 		self.bot = bot
 	
 
+	@app_commands.command(name="list-auto-responses", description="Lists all auto-responses set on this server")
+	async def list_auto_responses(self, interaction: discord.Interaction):
+		"""/list-auto-responses: Lists all auto-responses configured for this server and their corresponding regexes."""
+		# Do not run if not in AUTHORIZED_USER_IDS
+		if interaction.user.id not in AUTHORIZED_USER_IDS:
+			await interaction.response.send_message(f"{interaction.user.name} is not in the sudoers file.\nThis incident will be reported.", ephemeral=True)
+			return
+		
+		# Load auto-responses datatree
+		auto_response_dt = self.bot.dt[interaction.guild.id]["auto-responses"]
+
+		# Generate list of regexes and responses
+		out = []
+		for regex in auto_response_dt:
+			out.append(f"- Messages that match the regex `{regex}` will be replied to with: `{auto_response_dt[regex]}`")
+		
+		# Send list
+		await interaction.response.send_message('\n'.join(sorted(out)), ephemeral=True)
+
+	
+
 	@app_commands.command(name="set-auto-response", description="Add or update an auto-response")
 	@app_commands.describe(regex="The valid regular expression or CASE-SENSITIVE plain string associated with the auto-response you would like to add.")
 	@app_commands.describe(response="The message you would like to send if someone's message content matched the regex.")
@@ -75,9 +96,9 @@ class AutoResponsesCog(commands.Cog):
 		auto_response_dt = self.bot.dt[message.guild.id]["auto-responses"]
 
 		# Respond to many possible messages
-		for catchphrase in auto_response_dt:
-			if re.search(catchphrase, message.content):
-				await message.channel.send(auto_response_dt[catchphrase], reference=message)
+		for regex in auto_response_dt:
+			if re.search(regex, message.content):
+				await message.channel.send(auto_response_dt[regex], reference=message)
 
 	
 
