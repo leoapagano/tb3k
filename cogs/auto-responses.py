@@ -24,7 +24,8 @@ class AutoResponsesCog(commands.Cog):
 	
 
 	@app_commands.command(name="list-auto-responses", description="Lists all auto-responses set on this server")
-	async def list_auto_responses(self, interaction: discord.Interaction):
+	@app_commands.describe(page="Page number (starting from 1)")
+	async def list_auto_responses(self, interaction: discord.Interaction, page: int = 1):
 		"""/list-auto-responses: Lists all auto-responses configured for this server and their corresponding regexes."""
 		# Do not run if not in AUTHORIZED_USER_IDS
 		if interaction.user.id not in AUTHORIZED_USER_IDS:
@@ -34,16 +35,38 @@ class AutoResponsesCog(commands.Cog):
 		# Load auto-responses datatree
 		auto_response_dt = self.bot.dt[interaction.guild.id]["auto-responses"]
 
-		# Generate list of regexes and responses
-		out = []
+		# Iterate through list of regexes and responses
+		page_out = [""]
+		curr_page = 1
+		curr_page_chars = 0
 		for regex in auto_response_dt:
-			out.append(f"- Messages that match the regex `{regex}` will be replied to with: `{auto_response_dt[regex]}`")
+			# Determine message length
+			response = auto_response_dt[regex]
+			response_len = 256 if len(response) >= 270 else len(response)+3
+			message_len = 63 + len(regex) + response_len
+
+			# Turn page if necessary
+			if (curr_page_chars + message_len) > 1500:
+				curr_page += 1
+				curr_page_chars = 0
+
+			# Add to current page
+			curr_page_chars += message_len
+			if curr_page == page:
+				trunc_response = (response[:200] + "..." + response[-50:]) if len(response) >= 270 else response
+				message = f"Messages that match the regex `{regex}` will be replied to with: `{trunc_response}`"
+				page_out.append(message)
 		
-		# Send list
-		if len(out):
-			out = '\n'.join(sorted(out))
+		# Build output
+		if (curr_page == 1) and (curr_page_chars == 0):
+			out = "You haven't set any auto responses for this server yet."
+		elif len(page_out) == 1:
+			out = f"This page doesn't exist. ({curr_page} total pages exist)"
 		else:
-			out = "No auto responses are currently configured on this server."
+			page_out[0] = f"Showing messages from page {page}/{curr_page}:\n"
+			out = "\n- ".join(page_out)
+
+		# Send output
 		await interaction.response.send_message(out, ephemeral=True)
 	
 
