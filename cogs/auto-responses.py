@@ -40,8 +40,11 @@ class AutoResponsesCog(commands.Cog):
 			out.append(f"- Messages that match the regex `{regex}` will be replied to with: `{auto_response_dt[regex]}`")
 		
 		# Send list
-		await interaction.response.send_message('\n'.join(sorted(out)), ephemeral=True)
-
+		if len(out):
+			out = '\n'.join(sorted(out))
+		else:
+			out = "No auto responses are currently configured on this server."
+		await interaction.response.send_message(out, ephemeral=True)
 	
 
 	@app_commands.command(name="set-auto-response", description="Add or update an auto-response")
