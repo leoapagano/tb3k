@@ -59,6 +59,7 @@ class AutoResponsesCog(commands.Cog):
 			re.compile(regex)
 		except re.error:
 			await interaction.response.send_message("Your regex is invalid, malformed, uses an unsupported character or is otherwise syntactically incorrect. Maybe try double checking your spelling, capitalization, and escape sequences?", ephemeral=True)
+			return
 		
 		# Save new auto response
 		self.bot.dt[interaction.guild.id]["auto-responses"][regex] = response
