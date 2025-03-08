@@ -23,6 +23,8 @@ class SayCog(commands.Cog):
 	@app_commands.describe(message="Your message")
 	async def say(self, interaction: discord.Interaction, message: str):
 		"""/say message: Tells tb3k to say something. Only permits users in AUTHORIZED_USER_IDS to do so."""
+		print(f"[say] {interaction.user.name} ran command /say with args: message={message}")
+
 		if interaction.user.id in AUTHORIZED_USER_IDS:
 			await interaction.response.send_message(f"Done!", ephemeral=True)
 			await interaction.channel.send(message)

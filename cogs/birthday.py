@@ -61,7 +61,9 @@ class BirthdayCog(commands.Cog):
 	@app_commands.command(name="set-birthday", description="Set your birthday")
 	@app_commands.describe(birthday="Your birthday, in ISO 8601 (YYYY-MM-DD) format (EXAMPLE: November 4th, 2004 is 2004-11-04)")
 	async def set_birthday(self, interaction: discord.Interaction, birthday: str):
-		"""/set-birthday birthday: Sets the birthday of the user who runs this command. birthday is given in YYYY-MM-DD format."""		
+		"""/set-birthday birthday: Sets the birthday of the user who runs this command. birthday is given in YYYY-MM-DD format."""
+		print(f"[birthday] {interaction.user.name} ran command /set-birthday with args: birthday={birthday}")
+		
 		try:
 			# Attempt to parse as ISO8601 time
 			date = str(datetime.strptime(birthday, "%Y-%m-%d").date())
@@ -78,6 +80,8 @@ class BirthdayCog(commands.Cog):
 	@app_commands.command(name="unset-birthday", description="Unset your birthday")
 	async def unset_birthday(self, interaction: discord.Interaction):
 		"""/unset-birthday: Removes the birthday of the user who runs this command."""
+		print(f"[birthday] {interaction.user.name} ran command /unset-birthday with no args")
+
 		# Check if set
 		if interaction.user.id in self.bot.dt[interaction.guild.id]["birthdays"]:
 			# Set - clear birthday and tell user
@@ -92,6 +96,8 @@ class BirthdayCog(commands.Cog):
 	@app_commands.describe(user="Target user")
 	async def get_birthday(self, interaction: discord.Interaction, user: discord.Member):
 		"""/get-birthday user: Gets the birthday of any member of the server, if they set it."""
+		print(f"[birthday] {interaction.user.name} ran command /get-birthday with args: user={user}")
+
 		# Check if set
 		if user.id in self.bot.dt[interaction.guild.id]["birthdays"]:
 			# Set - get birthday and tell user
@@ -134,6 +140,7 @@ class BirthdayCog(commands.Cog):
 
 				# Send happy birthday msg if appropriate
 				if (current_date[1] == user_birthday[1]) and (current_date[2] == user_birthday[2]) and (current_date[0] > user_birthday[0]):
+					print(f"[birthday] Today is {user.name}'s birthday! Sending a celebratory message.")
 					await channel.send(f"Today is {user.mention}'s {ord(current_date[0] - user_birthday[0])} birthday! Wish them a happy birthday!")
 
 

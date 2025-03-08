@@ -27,6 +27,8 @@ class AutoResponsesCog(commands.Cog):
 	@app_commands.describe(page="Page number (starting from 1)")
 	async def list_auto_responses(self, interaction: discord.Interaction, page: int = 1):
 		"""/list-auto-responses: Lists all auto-responses configured for this server and their corresponding regexes."""
+		print(f"[auto-responses] {interaction.user.name} ran command /list-auto-responses with args: page={page}")
+
 		# Do not run if not in AUTHORIZED_USER_IDS
 		if interaction.user.id not in AUTHORIZED_USER_IDS:
 			await interaction.response.send_message(f"{interaction.user.name} is not in the sudoers file.\nThis incident will be reported.", ephemeral=True)
@@ -75,6 +77,8 @@ class AutoResponsesCog(commands.Cog):
 	@app_commands.describe(response="The message you would like to send if someone's message content matched the regex.")
 	async def set_auto_response(self, interaction: discord.Interaction, regex: str, response: str):
 		"""/set-auto-response regex response: If a non-bot user sends (in this server only) a message which matches regex (which can be either a valid regex string or a case-sensitive plain string), tb3k will reply to it with message. Only one response can exist for a specific regex, though a message may match multiple regexes and accordingly garner multiple replies."""
+		print(f"[auto-responses] {interaction.user.name} ran command /set-auto-response with args: regex={regex} response={response}")
+
 		# Do not run if not in AUTHORIZED_USER_IDS
 		if interaction.user.id not in AUTHORIZED_USER_IDS:
 			await interaction.response.send_message(f"{interaction.user.name} is not in the sudoers file.\nThis incident will be reported.", ephemeral=True)
@@ -96,6 +100,8 @@ class AutoResponsesCog(commands.Cog):
 	@app_commands.describe(regex="The regex associated with the auto-response you would like to remove.")
 	async def unset_auto_response(self, interaction: discord.Interaction, regex: str):
 		"""/unset-auto-response regex: Removes an auto-response (in this server only) from this bot. regex must exactly match that of the response you want to delete."""
+		print(f"[auto-responses] {interaction.user.name} ran command /unset-auto-response with args: regex={regex}")
+
 		# Do not run if not in AUTHORIZED_USER_IDS
 		if interaction.user.id not in AUTHORIZED_USER_IDS:
 			await interaction.response.send_message(f"{interaction.user.name} is not in the sudoers file.\nThis incident will be reported.", ephemeral=True)
@@ -125,6 +131,7 @@ class AutoResponsesCog(commands.Cog):
 		# Respond to many possible messages
 		for regex in auto_response_dt:
 			if re.search(regex, message.content):
+				print(f"[auto-responses] {message.user.name} said something which matched the regex {regex}")
 				await message.channel.send(auto_response_dt[regex], reference=message)
 
 	
