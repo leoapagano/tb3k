@@ -56,29 +56,5 @@ async def on_ready():
 	print(f'[core] Ready to go! Logged in as {bot.user}.')
 
 
-# ON SERVER JOIN
-# Write to debug log
-@bot.event
-async def on_guild_join(guild):
-	print(f"[core] Bot has been added to a new guild titled \"{guild.name}\"")
-
-
-# READ MESSAGES
-# Write to debug log
-# If mentioned, say hello
-# If message contains "sand" respond with "I don't like sand"
-@bot.event
-async def on_message(message):
-	# Ignore messages sent by the bot itself
-	if message.author == bot.user:
-		return
-	
-	# Print message to debug log
-	print(f"[{message.author.name}@{message.guild}] {message.content}")
-
-	# Needed for other stuff
-	await bot.process_commands(message)
-
-
 # LAUNCH TB3K
 bot.run(TOKEN)
