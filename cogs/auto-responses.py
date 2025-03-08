@@ -23,6 +23,27 @@ class AutoResponsesCog(commands.Cog):
 		self.bot = bot
 	
 
+	@app_commands.command(name="set-auto-response", description="Add or update an auto-response")
+	@app_commands.describe(regex="The valid regular expression or CASE-SENSITIVE plain string associated with the auto-response you would like to add.")
+	@app_commands.describe(response="The message you would like to send if someone's message content matched the regex.")
+	async def set_auto_response(self, interaction: discord.Interaction, regex: str, response: str):
+		"""/set-auto-response regex response: If a non-bot user sends (in this server only) a message which matches regex (which can be either a valid regex string or a case-sensitive plain string), tb3k will reply to it with message. Only one response can exist for a specific regex, though a message may match multiple regexes and accordingly garner multiple replies."""
+		# Do not run if not in AUTHORIZED_USER_IDS
+		if interaction.user.id not in AUTHORIZED_USER_IDS:
+			await interaction.response.send_message(f"{interaction.user.name} is not in the sudoers file.\nThis incident will be reported.", ephemeral=True)
+			return
+		
+		# Check if regex is valid
+		try:
+			re.compile(regex)
+		except re.error:
+			await interaction.response.send_message("Your regex is invalid, malformed, uses an unsupported character or is otherwise syntactically incorrect. Maybe try double checking your spelling, capitalization, and escape sequences?", ephemeral=True)
+		
+		# Save new auto response
+		self.bot.dt[interaction.guild.id]["auto-responses"][regex] = response
+		await interaction.response.send_message(f"Done! Now when someone sends a message matching `{regex}`, this bot will respond with `{response}`.", ephemeral=True)
+	
+
 	@app_commands.command(name="unset-auto-response", description="Remove an auto-response")
 	@app_commands.describe(regex="The regex associated with the auto-response you would like to remove.")
 	async def unset_auto_response(self, interaction: discord.Interaction, regex: str):
