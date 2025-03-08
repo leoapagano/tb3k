@@ -3,7 +3,9 @@ cogs/auto-responses.py
 Allows users defined in AUTHORIZED_USER_IDS to define automatic, server-specific responses to certain keywords.
 
 Commands:
-	/test: testing 123
+	/set-auto-response regex response: If a non-bot user sends (in this server only) a message which matches regex (which can be either a valid regex string or a case-sensitive plain string), tb3k will reply to it with message. Only one response can exist for a specific regex, though a message may match multiple regexes and accordingly garner multiple replies.
+	/unset-auto-response regex: Removes an auto-response (in this server only) from this bot. regex must exactly match that of the response you want to delete.
+	/list-auto-responses: Lists all auto-responses configured for this server and their corresponding regexes.
 """
 
 import re
@@ -21,13 +23,25 @@ class AutoResponsesCog(commands.Cog):
 		self.bot = bot
 	
 
-	@app_commands.command(name="test", description="testing 123")
-	async def test(self, interaction: discord.Interaction):
-		"""/test: testing 123"""
-		if interaction.user.id in AUTHORIZED_USER_IDS:
-			await interaction.response.send_message(f"testing testing 123", ephemeral=True)
-		else:
+	@app_commands.command(name="unset-auto-response", description="Remove an auto-response")
+	@app_commands.describe(regex="The regex associated with the auto-response you would like to remove.")
+	async def unset_auto_response(self, interaction: discord.Interaction, regex: str):
+		"""/unset-auto-response regex: Removes an auto-response (in this server only) from this bot. regex must exactly match that of the response you want to delete."""
+		# Do not run if not in AUTHORIZED_USER_IDS
+		if interaction.user.id not in AUTHORIZED_USER_IDS:
 			await interaction.response.send_message(f"{interaction.user.name} is not in the sudoers file.\nThis incident will be reported.", ephemeral=True)
+			return
+
+		# Check if set
+		if regex in self.bot.dt[interaction.guild.id]["auto-responses"]:
+			# Set - clear birthday and tell user
+			deleted_response = self.bot.dt[interaction.guild.id]["auto-responses"][regex]
+			del self.bot.dt[interaction.guild.id]["auto-responses"][regex]
+			await interaction.response.send_message(f"Done! The regex response associated with `{regex}` has been deleted. It was associated with the response `{deleted_response}`.", ephemeral=True)
+
+		# Not set - inform user
+		else:
+			await interaction.response.send_message("This regex is not in use for this server. Maybe try double checking your spelling, capitalization, and escape sequences?", ephemeral=True)
 
 
 	@commands.Cog.listener()
