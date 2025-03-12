@@ -131,7 +131,7 @@ class AutoResponsesCog(commands.Cog):
 		# Respond to many possible messages
 		for regex in auto_response_dt:
 			if re.search(regex, message.content):
-				print(f"[auto-responses] {message.user.name} said something which matched the regex {regex}")
+				print(f"[auto-responses] {message.author.name} said something which matched the regex {regex}")
 				await message.channel.send(auto_response_dt[regex], reference=message)
 
 	
