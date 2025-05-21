@@ -59,31 +59,35 @@ class AutoResponsesCog(commands.Cog):
 		curr_page = 1
 		curr_page_chars = 0
 		for regex in auto_response_dt:
-			# Determine message length
+			# Get regex response and truncate to 200 chars at most
 			response = auto_response_dt[regex]['response']
-			response_len = 256 if len(response) >= 270 else len(response)+3
-			message_len = 63 + len(regex) + response_len
+			response = response if len(response) <= 200 else (response[:147] + "..." + response[-50:])
+
+			# Compose current bullet point
+			message = f"\n- Messages that match the regex `{regex}` will be replied to with: `{response}`"
 
 			# Turn page if necessary
-			if (curr_page_chars + message_len) > 1500:
+			if (curr_page_chars + len(message)) > 1900:
 				curr_page += 1
 				curr_page_chars = 0
 
 			# Add to current page
-			curr_page_chars += message_len
+			curr_page_chars += len(message)
 			if curr_page == page:
-				trunc_response = (response[:200] + "..." + response[-50:]) if len(response) >= 270 else response
-				message = f"Messages that match the regex `{regex}` will be replied to with: `{trunc_response}`"
 				page_out.append(message)
 		
+		# Ensure that page header is less than 100 chars (so full msg is less than 2000 chars)
+		adj_page = page if len(str(page)) <= 33 else "[large number]"
+		adj_curr_page = curr_page if len(str(curr_page)) <= 33 else "[large number]"
+
 		# Build output
 		if (curr_page == 1) and (curr_page_chars == 0):
 			out = "You haven't set any auto responses for this server yet."
 		elif len(page_out) == 1:
-			out = f"This page doesn't exist. ({curr_page} total pages exist)"
+			out = f"This page doesn't exist. ({adj_curr_page} pages exist)"
 		else:
-			page_out[0] = f"Showing messages from page {page}/{curr_page}:\n"
-			out = "\n- ".join(page_out)
+			page_out[0] = f"Showing messages from page {adj_page} of {adj_curr_page}:\n"
+			out = "".join(page_out)
 
 		# Send output
 		await interaction.response.send_message(out, ephemeral=True)
