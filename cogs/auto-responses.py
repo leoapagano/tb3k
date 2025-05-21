@@ -26,9 +26,9 @@ def fmt_seconds(seconds):
 	h, r = divmod(seconds, 3600)
 	m, s = divmod(r, 60)
 	parts = []
-	if h: parts.append(f"{h} hour{"s" if h != 1 else ""}")
-	if m: parts.append(f"{m} minute{"s" if m != 1 else ""}")
-	if s or not len(parts): parts.append(f"{s} second{"s" if s != 1 else ""}")
+	if h: parts.append(f"{h} hour{'s' if h != 1 else ''}")
+	if m: parts.append(f"{m} minute{'s' if m != 1 else ''}")
+	if s or not len(parts): parts.append(f"{s} second{'s' if s != 1 else ''}")
 	if len(parts) == 3:
 		return f"{parts[0]}, {parts[1]}, and {parts[2]}"
 	else:
