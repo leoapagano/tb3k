@@ -9,6 +9,8 @@ Commands:
 """
 
 import re
+import random
+import time
 
 import discord
 from discord import app_commands
@@ -16,6 +18,21 @@ from discord.ext import commands
 
 
 AUTHORIZED_USER_IDS = [707353013286731846]
+
+
+def fmt_seconds(seconds):
+	"""Pretty prints an amount of seconds in hours, minutes, and seconds.
+	Example: fmt_seconds(13211) -> '3 hours, 40 minutes, and 11 seconds'."""
+	h, r = divmod(seconds, 3600)
+	m, s = divmod(r, 60)
+	parts = []
+	if h: parts.append(f"{h} hour{"s" if h != 1 else ""}")
+	if m: parts.append(f"{m} minute{"s" if m != 1 else ""}")
+	if s or not len(parts): parts.append(f"{s} second{"s" if s != 1 else ""}")
+	if len(parts) == 3:
+		return f"{parts[0]}, {parts[1]}, and {parts[2]}"
+	else:
+		return " and ".join(parts)
 
 
 class AutoResponsesCog(commands.Cog):
@@ -43,7 +60,7 @@ class AutoResponsesCog(commands.Cog):
 		curr_page_chars = 0
 		for regex in auto_response_dt:
 			# Determine message length
-			response = auto_response_dt[regex]
+			response = auto_response_dt[regex]['response']
 			response_len = 256 if len(response) >= 270 else len(response)+3
 			message_len = 63 + len(regex) + response_len
 
@@ -75,8 +92,14 @@ class AutoResponsesCog(commands.Cog):
 	@app_commands.command(name="set-auto-response", description="Add or update an auto-response")
 	@app_commands.describe(regex="The valid regular expression or CASE-SENSITIVE plain string associated with the auto-response you would like to add.")
 	@app_commands.describe(response="The message you would like to send if someone's message content matched the regex.")
-	async def set_auto_response(self, interaction: discord.Interaction, regex: str, response: str):
-		"""/set-auto-response regex response: If a non-bot user sends (in this server only) a message which matches regex (which can be either a valid regex string or a case-sensitive plain string), tb3k will reply to it with message. Only one response can exist for a specific regex, though a message may match multiple regexes and accordingly garner multiple replies."""
+	@app_commands.describe(cooldown="The minimum time (in seconds) after this response is used once for which it will not be used again.")
+	@app_commands.describe(probability="The percent chance that this response will be activated if the regex matches a message sent.")
+	async def set_auto_response(self, interaction: discord.Interaction, regex: str, response: str, cooldown: int, probability: int):
+		"""/set-auto-response regex response cooldown probability:
+		- If a non-bot user sends (in this server only) a message which matches regex (which can be either a valid regex string or a case-sensitive plain string),
+		- and the auto response is not within its' cooldown period,
+		- then tb3k will reply to it with message with a certain chance (probability) of it happening.
+		- Only one response can exist for a specific regex, though a message may match multiple regexes and accordingly garner multiple replies."""
 		print(f"[auto-responses] {interaction.user.name} ran command /set-auto-response with args: regex={regex} response={response}")
 
 		# Do not run if not in AUTHORIZED_USER_IDS
@@ -92,7 +115,13 @@ class AutoResponsesCog(commands.Cog):
 			return
 		
 		# Save new auto response
-		self.bot.dt[interaction.guild.id]["auto-responses"][regex] = response
+		self.bot.dt[interaction.guild.id]["auto-responses"][regex] = {
+			'cooldown': cooldown,
+			'last-used': -1,
+			'probability': probability / 100,
+			'response': response,
+			'times-used': 0
+		}
 		await interaction.response.send_message(f"Done! Now when someone sends a message matching `{regex}`, this bot will respond with `{response}`.", ephemeral=True)
 	
 
@@ -110,7 +139,7 @@ class AutoResponsesCog(commands.Cog):
 		# Check if set
 		if regex in self.bot.dt[interaction.guild.id]["auto-responses"]:
 			# Set - clear birthday and tell user
-			deleted_response = self.bot.dt[interaction.guild.id]["auto-responses"][regex]
+			deleted_response = self.bot.dt[interaction.guild.id]["auto-responses"][regex]['response']
 			del self.bot.dt[interaction.guild.id]["auto-responses"][regex]
 			await interaction.response.send_message(f"Done! The regex response associated with `{regex}` has been deleted. It was associated with the response `{deleted_response}`.", ephemeral=True)
 
@@ -132,7 +161,26 @@ class AutoResponsesCog(commands.Cog):
 		for regex in auto_response_dt:
 			if re.search(regex, message.content):
 				print(f"[auto-responses] {message.author.name} said something which matched the regex {regex}")
-				await message.channel.send(auto_response_dt[regex], reference=message)
+
+				# Check cooldown
+				cooldown = int(auto_response_dt[regex]["cooldown"])
+				curr_utime = int(time.time())
+				last_utime = int(auto_response_dt[regex]["last-used"])
+				if ((last_utime + cooldown) >= curr_utime):
+					print("\tAuto response not sent due to cooldown.")
+					return
+				
+				# Check probability
+				probability = float(auto_response_dt[regex]["probability"])
+				if (random.random() >= probability):
+					print("\tAuto response not sent due to probability.")
+					return
+
+				# Both checks passed - send message
+				print("\tAuto response sent!")
+				auto_response_dt[regex]["last-used"] = int(time.time())
+				auto_response_dt[regex]["times-used"] = int(auto_response_dt[regex]["times-used"]) + 1
+				await message.channel.send(auto_response_dt[regex]["response"], reference=message)
 
 	
 
