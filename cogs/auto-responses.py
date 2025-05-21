@@ -62,9 +62,12 @@ class AutoResponsesCog(commands.Cog):
 			# Get regex response and truncate to 200 chars at most
 			response = auto_response_dt[regex]['response']
 			response = response if len(response) <= 200 else (response[:147] + "..." + response[-50:])
+			cooldown = fmt_seconds(int(auto_response_dt[regex]['cooldown']))
+			probability = int(float(auto_response_dt[regex]['probability'])*100)
+			total_uses = auto_response_dt[regex]['times-used']
 
 			# Compose current bullet point
-			message = f"\n- Messages that match the regex `{regex}` will be replied to with: `{response}`"
+			message = f"\n- Messages that match the regex `{regex}` will be replied to with: `{response}`. This response will activate {probability}% of the time, with at minimum {cooldown} between uses. It's been used {total_uses} times."
 
 			# Turn page if necessary
 			if (curr_page_chars + len(message)) > 1900:
@@ -143,9 +146,10 @@ class AutoResponsesCog(commands.Cog):
 		# Check if set
 		if regex in self.bot.dt[interaction.guild.id]["auto-responses"]:
 			# Set - clear birthday and tell user
+			total_uses = self.bot.dt[interaction.guild.id]["auto-responses"][regex]['times-used']
 			deleted_response = self.bot.dt[interaction.guild.id]["auto-responses"][regex]['response']
 			del self.bot.dt[interaction.guild.id]["auto-responses"][regex]
-			await interaction.response.send_message(f"Done! The regex response associated with `{regex}` has been deleted. It was associated with the response `{deleted_response}`.", ephemeral=True)
+			await interaction.response.send_message(f"Done! The regex response associated with `{regex}` has been deleted. It was associated with the response `{deleted_response}` and was used {total_uses} times.", ephemeral=True)
 
 		# Not set - inform user
 		else:
