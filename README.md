@@ -1,5 +1,7 @@
 # tb3k
 
+**NOTE**: Development has been frozen on this project indefinitely.
+
 tb3k is a Python-based Discord bot with numerous cool, fun, and fancy features. These include:
 
 - The ability to keep track of, and announce, the birthdays of server members
